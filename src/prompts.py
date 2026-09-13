@@ -5,6 +5,40 @@
 
 MAX_ITERATIONS = 5
 
+# Các mẫu câu thường xuất hiện trong yêu cầu cố tình ghi đè hoặc làm lộ chỉ dẫn
+# nội bộ. So khớp được thực hiện không phân biệt chữ hoa/chữ thường.
+INJECTION_KEYWORDS = [
+    "ignore previous instructions",
+    "ignore all previous instructions",
+    "disregard previous instructions",
+    "reveal your prompt",
+    "show your system prompt",
+    "system prompt",
+    "developer message",
+    "jailbreak",
+    "bỏ qua hướng dẫn trước",
+    "bỏ qua mọi hướng dẫn",
+    "bỏ qua tất cả hướng dẫn",
+    "quên các chỉ dẫn trước",
+    "tiết lộ prompt hệ thống",
+]
+
+
+def check_input_prompt_injection(user_query: str) -> tuple[bool, str]:
+    """Phát hiện sớm các mẫu prompt injection trước khi gọi LLM."""
+    normalized_query = (user_query or "").casefold()
+
+    for keyword in INJECTION_KEYWORDS:
+        if keyword.casefold() in normalized_query:
+            return (
+                True,
+                "⚠️ Cảnh báo: Yêu cầu bị chặn vì có dấu hiệu Prompt Injection. "
+                "Vui lòng đặt câu hỏi học vụ hợp lệ và không yêu cầu thay đổi "
+                "hoặc tiết lộ chỉ dẫn hệ thống."
+            )
+
+    return False, ""
+
 CHATBOT_BASELINE_PROMPT = """
 Bạn là Trợ lý Học vụ thuộc Đại học VinUni.
 Nhiệm vụ của bạn là giải đáp các thắc mắc chung của sinh viên về quy chế học vụ.
